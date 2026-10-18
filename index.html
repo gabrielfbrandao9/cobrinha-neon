@@ -90,6 +90,7 @@ let cell, snake, dir, queue, items, score, level, running, paused, lastStep, eff
 function loadBest() { try { return +localStorage.getItem('cobrinha-best') || 0; } catch { return 0; } }
 function saveBest(v) { try { localStorage.setItem('cobrinha-best', v); } catch {} }
 let best = loadBest();
+let bestAtStart = best;
 $('best').textContent = best;
 
 function resize() {
@@ -272,6 +273,7 @@ function loop(now) {
 
 function start() {
   reset();
+  bestAtStart = best;
   running = true; paused = false; lastStep = performance.now();
   $('overlay').classList.add('hidden');
 }
@@ -281,7 +283,7 @@ function gameOver() {
   burst(snake[0][0], snake[0][1], COLORS.food);
   $('ovTitle').textContent = 'Fim de jogo';
   $('ovText').innerHTML = `Você fez <b style="color:var(--text)">${score}</b> pontos.` +
-    (score && score >= best ? '<br>🏆 Novo recorde!' : '') + '<br>Enter ou o botão para jogar de novo.';
+    (score > bestAtStart ? '<br>🏆 Novo recorde!' : '') + '<br>Enter ou o botão para jogar de novo.';
   document.querySelector('.legend').style.display = 'none';
   $('startBtn').textContent = 'Jogar de novo';
   $('overlay').classList.remove('hidden');
