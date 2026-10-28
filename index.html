@@ -4,11 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Cobrinha Neon</title>
+<meta name="description" content="Jogo da cobrinha com visual neon: comida, ouro, gelo e fantasma. Funciona no celular e sem internet.">
+<meta name="theme-color" content="#07060f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+  // Aplica o tema escolhido antes de desenhar a página (evita piscar).
+  try { const t = localStorage.getItem('cobrinha-tema'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+</script>
 <style>
   :root {
     --bg: #07060f;
     --panel: #120f24;
     --grid: #1a1633;
+    --edge: #2a2450;
+    --overlay: rgba(7,6,15,.78);
+    --pad: #1f1a3d;
+    --on-accent: #07060f;
+    --eye: #07060f;
     --snake: #39ffb4;
     --food: #ff3e8a;
     --slow: #4cc9ff;
@@ -16,6 +30,23 @@
     --gold: #ffd84c;
     --text: #e9e6ff;
     --muted: #8a84b8;
+    --glow: 1;
+    color-scheme: dark;
+  }
+  /* Tema claro: as mesmas cores, mais escuras para aparecer no fundo branco */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f3f0fb; --panel: #ffffff; --grid: #ebe7f7; --edge: #d9d2f0; --overlay: rgba(243,240,251,.86);
+      --pad: #e4def6; --on-accent: #ffffff; --eye: #ffffff;
+      --snake: #0aa874; --food: #e0256f; --slow: #1b8fd0; --ghost: #8f45d6; --gold: #c98a00;
+      --text: #1d1640; --muted: #645d8c; --glow: .45; color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f0fb; --panel: #ffffff; --grid: #ebe7f7; --edge: #d9d2f0; --overlay: rgba(243,240,251,.86);
+    --pad: #e4def6; --on-accent: #ffffff; --eye: #ffffff;
+    --snake: #0aa874; --food: #e0256f; --slow: #1b8fd0; --ghost: #8f45d6; --gold: #c98a00;
+    --text: #1d1640; --muted: #645d8c; --glow: .45; color-scheme: light;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -28,26 +59,44 @@
   .hud b { color: var(--text); font-size: 18px; }
   .stage { position: relative; }
   canvas { display: block; background: var(--panel); border-radius: 12px;
-    box-shadow: 0 0 0 2px #2a2450, 0 0 40px rgba(57,255,180,.15); }
+    box-shadow: 0 0 0 2px var(--edge), 0 0 40px color-mix(in srgb, var(--snake) 15%, transparent); }
   .overlay { position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 10px; text-align: center;
-    background: rgba(7,6,15,.78); border-radius: 12px; padding: 20px; }
+    background: var(--overlay); border-radius: 12px; padding: 20px; }
   .overlay.hidden { display: none; }
   .overlay h2 { margin: 0; font-size: 28px; color: var(--food); text-shadow: 0 0 12px var(--food); }
   .overlay p { margin: 0; color: var(--muted); line-height: 1.5; max-width: 320px; }
   .legend { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; text-align: left; font-size: 14px; }
   .dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; }
-  button { font: inherit; font-weight: 600; color: var(--bg); background: var(--snake);
+  button { font: inherit; font-weight: 600; color: var(--on-accent); background: var(--snake);
     border: 0; border-radius: 999px; padding: 10px 26px; cursor: pointer;
     box-shadow: 0 0 16px var(--snake); }
   button:active { transform: scale(.96); }
   .status { min-height: 20px; font-size: 14px; }
   .pad { display: none; grid-template-columns: repeat(3, 56px); gap: 6px; }
-  .pad button { padding: 0; height: 56px; background: #1f1a3d; color: var(--text); box-shadow: none; font-size: 22px; }
+  .pad button { padding: 0; height: 56px; background: var(--pad); color: var(--text); box-shadow: none; font-size: 22px; }
   @media (pointer: coarse) { .pad { display: grid; } }
+  /* Botões do canto: instalar e tema */
+  .cantos { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); display: flex; gap: 8px; z-index: 2; }
+  .cantos button { box-shadow: none; background: transparent; color: var(--muted); border: 1.5px solid var(--edge);
+    padding: 0; width: 40px; height: 40px; display: grid; place-items: center; }
+  .cantos button:hover { color: var(--text); }
+  .cantos .instalar { width: auto; padding: 0 14px; color: var(--on-accent); background: var(--snake); border-color: var(--snake); font-size: 14px; }
+  .cantos svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cantos .ic-sol circle { fill: currentColor; stroke: none; }
+  .ic-sol, .escuro .ic-lua { display: none; }
+  .escuro .ic-sol { display: block; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
+<div class="cantos">
+  <button type="button" class="instalar" id="instalar" hidden title="Instalar como app">Instalar</button>
+  <button type="button" id="tema" aria-label="Mudar para o tema claro" title="Mudar para o tema claro">
+    <svg class="ic-lua" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+    <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+  </button>
+</div>
 <div class="wrap">
   <h1>COBRINHA NEON</h1>
   <div class="hud">
@@ -83,7 +132,17 @@ const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const $ = id => document.getElementById(id);
 const DIRS = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
-const COLORS = { food: '#ff3e8a', gold: '#ffd84c', slow: '#4cc9ff', ghost: '#c77dff', snake: '#39ffb4' };
+// Cores do desenho: lidas do CSS, para acompanhar o tema claro/escuro.
+const COLORS = {};
+let GRID = '#1a1633', EYE = '#07060f', GLOW = 1;
+function readColors() {
+  const css = getComputedStyle(document.documentElement);
+  for (const k of ['food', 'gold', 'slow', 'ghost', 'snake']) COLORS[k] = css.getPropertyValue('--' + k).trim();
+  GRID = css.getPropertyValue('--grid').trim();
+  EYE = css.getPropertyValue('--eye').trim();
+  GLOW = parseFloat(css.getPropertyValue('--glow')) || 1;
+}
+readColors();
 
 let cell, snake, dir, queue, items, score, level, running, paused, lastStep, effects, particles;
 
@@ -202,7 +261,7 @@ function statusText() {
 }
 
 function glowCircle(x, y, r, color, blur) {
-  ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color;
+  ctx.shadowColor = color; ctx.shadowBlur = blur * GLOW; ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 }
 
@@ -212,7 +271,7 @@ function draw() {
   ctx.shadowBlur = 0;
   ctx.clearRect(0, 0, px, px);
 
-  ctx.strokeStyle = '#1a1633'; ctx.lineWidth = 1;
+  ctx.strokeStyle = GRID; ctx.lineWidth = 1;
   for (let i = 1; i < N; i++) {
     ctx.beginPath(); ctx.moveTo(i * cell + .5, 0); ctx.lineTo(i * cell + .5, px); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, i * cell + .5); ctx.lineTo(px, i * cell + .5); ctx.stroke();
@@ -230,7 +289,7 @@ function draw() {
   ctx.globalAlpha = ghost ? .6 : 1;
   snake.forEach((s, i) => {
     const t = 1 - i / (snake.length + 4);
-    ctx.shadowColor = color; ctx.shadowBlur = i === 0 ? 22 : 12;
+    ctx.shadowColor = color; ctx.shadowBlur = (i === 0 ? 22 : 12) * GLOW;
     ctx.fillStyle = color;
     ctx.globalAlpha = (ghost ? .6 : 1) * (.45 + .55 * t);
     const pad = i === 0 ? 1.5 : 2.5;
@@ -242,7 +301,7 @@ function draw() {
 
   // olhinhos
   const [hx, hy] = snake[0], [dx, dy] = DIRS[dir];
-  ctx.fillStyle = '#07060f';
+  ctx.fillStyle = EYE;
   for (const side of [-1, 1]) {
     const ex = (hx + .5 + dx * .18 - dy * .2 * side) * cell;
     const ey = (hy + .5 + dy * .18 + dx * .2 * side) * cell;
@@ -314,6 +373,48 @@ document.querySelectorAll('.pad button').forEach(b => b.addEventListener('click'
 }));
 $('startBtn').addEventListener('click', start);
 addEventListener('resize', resize);
+
+/* ---------- tema claro / escuro ---------- */
+const CHAVE_TEMA = 'cobrinha-tema';
+const temaEscuroSistema = matchMedia('(prefers-color-scheme: dark)');
+const temaAtual = () => document.documentElement.dataset.theme || (temaEscuroSistema.matches ? 'dark' : 'light');
+function mostrarTema() {
+  const escuro = temaAtual() === 'dark';
+  document.documentElement.classList.toggle('escuro', escuro);
+  const txt = escuro ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';
+  $('tema').setAttribute('aria-label', txt);
+  $('tema').title = txt;
+  document.querySelector('meta[name="theme-color"]').content = escuro ? '#07060f' : '#f3f0fb';
+  readColors();
+}
+$('tema').addEventListener('click', () => {
+  const novo = temaAtual() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = novo;
+  try { localStorage.setItem(CHAVE_TEMA, novo); } catch {}
+  mostrarTema();
+  $('tema').blur();   // o Espaço continua pausando o jogo, sem apertar o botão de novo
+});
+temaEscuroSistema.addEventListener('change', mostrarTema);
+mostrarTema();
+
+/* ---------- instalar como app ---------- */
+let pedidoInstalar = null;
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  pedidoInstalar = e;
+  $('instalar').hidden = false;
+});
+$('instalar').addEventListener('click', async () => {
+  if (!pedidoInstalar) return;
+  pedidoInstalar.prompt();
+  await pedidoInstalar.userChoice.catch(() => null);
+  pedidoInstalar = null;
+  $('instalar').hidden = true;
+});
+addEventListener('appinstalled', () => { $('instalar').hidden = true; });
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 reset();
 resize();
