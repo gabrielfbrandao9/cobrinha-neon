@@ -5,11 +5,12 @@
  *
  * Ao mudar a lista de arquivos, aumente a versão para limpar o cache antigo.
  */
-const VERSAO = 'v1';
+const VERSAO = 'v2';
 const CACHE = `cobrinha-${VERSAO}`;
 const ARQUIVOS = [
   './',
   'index.html',
+  'privacidade.html',
   'manifest.webmanifest',
   'icons/icon.svg',
   'icons/icon-192.png',

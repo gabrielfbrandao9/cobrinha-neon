@@ -87,6 +87,7 @@
   .ic-sol, .escuro .ic-lua { display: none; }
   .escuro .ic-sol { display: block; }
   [hidden] { display: none !important; }
+  .priv { font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -124,6 +125,7 @@
     <button data-dir="left">◀</button><button data-dir="pause">❚❚</button><button data-dir="right">▶</button>
     <span></span><button data-dir="down">▼</button><span></span>
   </div>
+  <a class="priv" href="privacidade.html">Política de privacidade</a>
 </div>
 
 <script>
@@ -153,7 +155,7 @@ let bestAtStart = best;
 $('best').textContent = best;
 
 function resize() {
-  const avail = Math.min(window.innerWidth - 32, window.innerHeight - 230, 560);
+  const avail = Math.min(window.innerWidth - 32, window.innerHeight - 262, 560);
   cell = Math.max(10, Math.floor(avail / N));
   const px = cell * N, dpr = window.devicePixelRatio || 1;
   canvas.style.width = canvas.style.height = px + 'px';
