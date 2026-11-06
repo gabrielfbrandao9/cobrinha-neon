@@ -32,7 +32,7 @@ O recorde fica salvo no navegador (`localStorage`).
 ## Tema e app
 
 - O botão ☀/☾ no canto troca entre tema claro e escuro (o padrão segue o aparelho).
-- Dá para instalar como app: botão **Instalar** no canto (Chrome/Android) ou **Compartilhar → Adicionar à Tela de Início** no iPhone.
+- Dá para instalar como app: botão **Instalar** no canto (baixa o APK para Android; dentro do app, vira **Atualizar**) ou **Compartilhar → Adicionar à Tela de Início** no iPhone.
   Depois de aberto uma vez, funciona sem internet.
 - `sw.js` e `manifest.webmanifest` cuidam do app; ao mudar a lista de arquivos, aumente `VERSAO` no `sw.js`.
 

@@ -92,7 +92,7 @@
 </head>
 <body>
 <div class="cantos">
-  <button type="button" class="instalar" id="instalar" hidden title="Instalar como app">Instalar</button>
+  <button type="button" class="instalar" id="instalar" data-app-apk hidden>Instalar</button>
   <button type="button" id="tema" aria-label="Mudar para o tema claro" title="Mudar para o tema claro">
     <svg class="ic-lua" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
     <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
@@ -399,21 +399,6 @@ $('tema').addEventListener('click', () => {
 temaEscuroSistema.addEventListener('change', mostrarTema);
 mostrarTema();
 
-/* ---------- instalar como app ---------- */
-let pedidoInstalar = null;
-addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  pedidoInstalar = e;
-  $('instalar').hidden = false;
-});
-$('instalar').addEventListener('click', async () => {
-  if (!pedidoInstalar) return;
-  pedidoInstalar.prompt();
-  await pedidoInstalar.userChoice.catch(() => null);
-  pedidoInstalar = null;
-  $('instalar').hidden = true;
-});
-addEventListener('appinstalled', () => { $('instalar').hidden = true; });
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
@@ -422,5 +407,6 @@ reset();
 resize();
 requestAnimationFrame(loop);
 </script>
+<script src="app-apk.js" data-repo="cobrinha-neon" data-apk="CobrinhaNeon.apk"></script>
 </body>
 </html>

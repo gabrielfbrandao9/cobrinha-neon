@@ -5,11 +5,12 @@
  *
  * Ao mudar a lista de arquivos, aumente a versão para limpar o cache antigo.
  */
-const VERSAO = 'v2';
+const VERSAO = 'v3';
 const CACHE = `cobrinha-${VERSAO}`;
 const ARQUIVOS = [
   './',
   'index.html',
+  'app-apk.js',
   'privacidade.html',
   'manifest.webmanifest',
   'icons/icon.svg',
